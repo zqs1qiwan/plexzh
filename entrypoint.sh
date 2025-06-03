@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 
 # 设置默认日志保留天数（7天）
 RETENTION_DAYS=${LOG_RETENTION_DAYS:-7}

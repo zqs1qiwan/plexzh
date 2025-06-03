@@ -1,0 +1,96 @@
+name: Build and Push Multi-Platform Docker Image
+
+on:
+  push:
+    # 触发条件：推送到 main 分支 或 任何以 v 开头的标签
+    branches:
+      - main
+    tags:
+      - 'v*'  # 匹配任何以 v 开头的标签（v1, v1.2, v1.2.0 等）
+  
+  # 手动触发选项
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Manual build tag (optional)'
+        required: false
+        default: 'manual-build'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      actions: write  # 添加 actions 权限
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # 确保获取所有标签信息
+        fetch-depth: 0
+      
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        driver-opts: network=host
+        install: true
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh
+        tags: |
+          # 自动生成多种标签格式
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=ref,event=tag
+          type=raw,value=latest
+        # 添加日期标签便于追踪
+        flavor: |
+          latest=true
+          suffix=-${{ github.run_number }}-${{ github.sha }}
+      
+    - name: Build and push multi-platform image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64,linux/arm/v7
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          Multi-platform Docker image built for:
+          - AMD64
+          - ARM64
+          - ARMv7
+          
+          ### Docker Pull Commands
+          ```bash
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh:${{ github.ref_name }}
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh:latest
+          ```
+        files: |
+          docker-build.log

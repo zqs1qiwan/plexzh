@@ -1,5 +1,13 @@
-logs/
-*.log
-__pycache__/
+# 忽略不需要的文件
 .git
+.github
+.gitignore
+*.log
+*.md
+.DS_Store
 .vscode
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+logs/
