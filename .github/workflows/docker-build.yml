@@ -65,7 +65,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref_name }}  # 使用标签名而不是 ref
+        tag_name: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
         body: |
           Multi-platform Docker image built for:
@@ -79,5 +79,5 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh:latest
           ```
         # 移除了 files 参数，因为我们不需要上传文件
-        # 添加 token 参数使用 GITHUB_TOKEN
-        token: ${{ secrets.GITHUB_TOKEN }}
+        # 添加 token 参数使用 releas token
+        token: ${{ secrets.RELEASE_TOKEN }}  # 使用自定义令牌
