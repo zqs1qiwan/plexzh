@@ -43,7 +43,7 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh
+          ${{ secrets.DOCKERHUB_USERNAME }}/plexzh
         tags: |
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
@@ -76,8 +76,8 @@ jobs:
           
           ### Docker Pull Commands
           ```bash
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh:${{ github.ref_name }}
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plex-zh:latest
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plexzh:${{ github.ref_name }}
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plexzh:latest
           ```
         # 移除了 files 参数，因为我们不需要上传文件
         # 添加 token 参数使用 releas token
